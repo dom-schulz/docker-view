@@ -60,13 +60,11 @@ func (m Model) leftWidth() int {
 	return clamp(m.width*32/100, min(28, m.width/2), 46)
 }
 
+// projectsHeight splits the left column evenly between projects and
+// containers (projects get the extra row when the height is odd).
 func (m Model) projectsHeight() int {
 	ch := m.height - 1
-	want := len(m.visible) + 2
-	if m.filtering || m.filter.Value() != "" {
-		want++
-	}
-	return clamp(want, min(5, ch), max(5, ch*55/100))
+	return ch - ch/2
 }
 
 // logHeight is the number of log lines that fit in the right pane.
@@ -103,6 +101,7 @@ func (m Model) projectsBox(w, h int) string {
 		}
 	}
 	start := scrollStart(m.selProject, len(m.visible), rows)
+	meta := rangeLabel(start, rows, len(m.visible))
 	for i := start; i < len(m.visible) && i < start+rows; i++ {
 		p := m.visible[i]
 		num := " "
@@ -126,7 +125,7 @@ func (m Model) projectsBox(w, h int) string {
 	if m.hideStopped {
 		title += sDim.Render(" (running)")
 	}
-	return box(title, "", lines, w, h, m.focus == focusProjects)
+	return box(title, meta, lines, w, h, m.focus == focusProjects)
 }
 
 func (m Model) selStyle(selected bool, f focus) lipgloss.Style {
@@ -141,7 +140,8 @@ func (m Model) selStyle(selected bool, f focus) lipgloss.Style {
 
 func (m Model) servicesBox(w, h int) string {
 	p, ok := m.project()
-	title := "Services"
+	title := "Containers"
+	meta := ""
 	if ok {
 		title += ": " + p.Name
 	}
@@ -155,6 +155,7 @@ func (m Model) servicesBox(w, h int) string {
 		}
 		nameW = min(nameW, inner/2)
 		start := scrollStart(m.selService, len(p.Services), rows)
+		meta = rangeLabel(start, rows, len(p.Services))
 		for i := start; i < len(p.Services) && i < start+rows; i++ {
 			s := p.Services[i]
 			dot := sDim.Render("○")
@@ -179,7 +180,7 @@ func (m Model) servicesBox(w, h int) string {
 			lines = append(lines, row)
 		}
 	}
-	return box(title, "", lines, w, h, m.focus == focusServices)
+	return box(title, meta, lines, w, h, m.focus == focusServices)
 }
 
 func (m Model) rightBox(w, h int) string {
@@ -372,15 +373,17 @@ func box(title, meta string, body []string, w, h int, focused bool) string {
 		bc = lipgloss.NewStyle().Foreground(cFocus)
 	}
 	inner := w - 2
-	title = ansi.Truncate(title, max(0, inner-2), "…")
-	top := bc.Render("┌") + " " + title + " "
-	used := 1 + 1 + ansi.StringWidth(title) + 1
 	if meta != "" {
 		meta = " " + meta + " "
-		if used+ansi.StringWidth(meta)+2 > w {
+		// Keep the meta (e.g. a scroll range) and shorten the title instead,
+		// unless that would leave almost no title.
+		if inner-2-ansi.StringWidth(meta)-1 < 8 {
 			meta = ""
 		}
 	}
+	title = ansi.Truncate(title, max(0, inner-2-ansi.StringWidth(meta)-1), "…")
+	top := bc.Render("┌") + " " + title + " "
+	used := 1 + 1 + ansi.StringWidth(title) + 1
 	fill := w - used - ansi.StringWidth(meta) - 1
 	top += bc.Render(strings.Repeat("─", max(0, fill))) + meta + bc.Render("┐")
 
@@ -460,4 +463,13 @@ func (l *logSession) colorIndexOf(service string) int {
 		}
 	}
 	return 0
+}
+
+// rangeLabel says which rows of a scrolled list are on screen, e.g.
+// "4–12 of 15", or nothing when the whole list fits.
+func rangeLabel(start, rows, n int) string {
+	if rows <= 0 || n <= rows {
+		return ""
+	}
+	return sDim.Render(fmt.Sprintf("%d–%d of %d", start+1, min(start+rows, n), n))
 }

@@ -179,7 +179,7 @@ type execDoneMsg struct {
 func (m *Model) execService() tea.Cmd {
 	s, ok := m.service()
 	if !ok || m.focus != focusServices {
-		return m.setStatus("select a service first (Tab to the services list)", true)
+		return m.setStatus("select a container first (Tab to the containers list)", true)
 	}
 	if !s.Running() {
 		return m.setStatus(s.Name+" isn't running", true)
@@ -244,9 +244,10 @@ func (s *shellCmd) Run() error {
 	if out == nil {
 		out = os.Stdout
 	}
-	fmt.Fprintf(out, "\x1b]2;%s\x07\x1b[2m%s\x1b[0m\r\n", s.title, s.banner)
+	// The shell gets normal wheel behaviour (e.g. for less) while it runs.
+	fmt.Fprintf(out, "%s\x1b]2;%s\x07\x1b[2m%s\x1b[0m\r\n", WheelOn, s.title, s.banner)
 	err := s.cmd.Run()
-	fmt.Fprintf(out, "\x1b]2;%s\x07", windowTitle)
+	fmt.Fprintf(out, "%s\x1b]2;%s\x07", WheelOff, windowTitle)
 	// The shell's own exit status (e.g. from the last command) isn't an error.
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
@@ -297,3 +298,11 @@ func plural(n int) string {
 	}
 	return "s"
 }
+
+// Alternate scroll mode (DECSET 1007): when on, the terminal sends the mouse
+// wheel to full-screen apps as arrow keys. dkrv turns it off so the wheel
+// doesn't move the selection or scroll the logs.
+const (
+	WheelOff = "\x1b[?1007l"
+	WheelOn  = "\x1b[?1007h"
+)

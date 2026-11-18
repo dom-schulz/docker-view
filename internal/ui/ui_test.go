@@ -84,3 +84,12 @@ func TestBox(t *testing.T) {
 }
 
 func stripANSI(s string) string { return reCSI.ReplaceAllString(s, "") }
+
+func TestRangeLabel(t *testing.T) {
+	if got := rangeLabel(0, 9, 5); got != "" {
+		t.Errorf("fits: got %q", got)
+	}
+	if got := stripANSI(rangeLabel(3, 9, 15)); got != "4–12 of 15" {
+		t.Errorf("scrolled: got %q", got)
+	}
+}

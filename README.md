@@ -13,7 +13,7 @@ Not affiliated with or endorsed by Docker, Inc.
 │ 2 ● api-feature-x    3/3  ││ backend  │ listening on :8000              │
 │ 3 ○ api-main         0/3  ││ frontend │ ➜ Local: http://localhost:5173  │
 │ 4 ○ old-spike        0/1  ││ ...                                        │
-├ Services: demo-webapp ────┤│                                            │
+├ Containers: demo-webapp ──┤│                                            │
 │ ● backend    8000->8000   ││                                            │
 │ ● frontend   5173->5173   ││                                            │
 └───────────────────────────┘└────────────────────────────────────────────┘
@@ -44,21 +44,21 @@ missing).
 | --- | --- | --- |
 | `↑` `↓` or `j` `k` | any list | move the selection |
 | `1`–`9` | anywhere | jump to project 1–9 |
-| `Tab` / `Shift+Tab` | anywhere | move focus: projects, services, right pane |
+| `Tab` / `Shift+Tab` | anywhere | move focus: projects, containers, right pane |
 | `[` `]` | anywhere | switch tab: Logs, Stats, Config |
-| `Enter` | services | logs for that service only (`Esc` goes back to all) |
+| `Enter` | containers | logs for that container only (`Esc` goes back to all) |
 | `/` | projects | filter projects by name |
 | `a` | projects | show or hide stopped projects |
 | `t` | project | shell in the project's folder, in this window; `exit` returns |
 | `T` | project | new Ghostty window in the project's folder; dkrv stays open |
-| `u` / `d` | project or service | compose up -d / down (down asks first) |
-| `r` / `s` | project or service | restart / stop |
-| `e` | services | shell into the service's container |
+| `u` / `d` | project or container | compose up -d / down (down asks first) |
+| `r` / `s` | project or container | restart / stop |
+| `e` | containers | shell into the container |
 | `C` | anywhere | clean up every project with nothing running |
 | `PgUp` `PgDn` / `G` | logs | scroll / jump back to following |
 | `?` / `q` | anywhere | help / quit |
 
-Actions apply to the selected service when the services list has focus, and
+Actions apply to the selected container when the containers list has focus, and
 to the whole project otherwise.
 
 ### How compose commands are built
