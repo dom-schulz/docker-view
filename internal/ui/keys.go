@@ -8,22 +8,22 @@ import (
 var helpRows = [][3]string{
 	{"↑ ↓  j k", "any list", "move the selection"},
 	{"1–9", "anywhere", "jump to project 1–9"},
-	{"Tab  Shift+Tab", "anywhere", "move focus: projects, services, right pane"},
+	{"Tab  Shift+Tab", "anywhere", "move focus: projects, containers, right pane"},
 	{"[  ]", "anywhere", "switch tab: Logs, Stats, Config"},
-	{"Enter", "services", "logs for that service only (Esc: all)"},
+	{"Enter", "containers", "logs for that container only (Esc: all)"},
 	{"/", "projects", "filter projects by name"},
 	{"a", "projects", "show or hide stopped projects"},
 	{"t", "project", "shell in the project's folder; exit returns"},
 	{"T", "project", "new Ghostty window in the project's folder"},
-	{"u  d", "project/service", "compose up -d / down (down asks first)"},
-	{"r  s", "project/service", "restart / stop"},
-	{"e", "services", "shell into the service's container"},
+	{"u  d", "project/container", "compose up -d / down (down asks first)"},
+	{"r  s", "project/container", "restart / stop"},
+	{"e", "containers", "shell into the container"},
 	{"C", "anywhere", "clean up every project with nothing running"},
 	{"PgUp PgDn  G", "logs", "scroll / jump back to following"},
 	{"?  q", "anywhere", "help / quit"},
 }
 
-const hints = "1-9 jump · ↑↓ move · tab focus · enter service logs · u up · d down · t shell · C clean up · ? help · q quit"
+const hints = "1-9 jump · ↑↓ move · tab focus · [ ] logs/stats/config · enter container logs · u up · d down · t shell · C clean up · ? help · q quit"
 
 func (m Model) handleKey(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 	key := k.String()

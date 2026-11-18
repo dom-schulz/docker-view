@@ -48,7 +48,13 @@ func main() {
 		Compose:    compose.Detect(),
 		Version:    getVersion(),
 	})
-	if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
+	// Terminals such as Ghostty turn the mouse wheel into arrow keys in
+	// full-screen apps (alternate scroll mode, 1007), which would move the
+	// selection. Turn that off while dkrv runs; text selection still works.
+	fmt.Print(ui.WheelOff)
+	_, err = tea.NewProgram(m, tea.WithAltScreen()).Run()
+	fmt.Print(ui.WheelOn)
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "dkrv:", err)
 		os.Exit(1)
 	}
