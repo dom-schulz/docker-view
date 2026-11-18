@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>dkrv</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2a30"/>
+      <stop offset="1" stop-color="#17171a"/>
+    </linearGradient>
+  </defs>
+  <!-- macOS-style squircle-ish tile with margin -->
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <!-- left pane: project list -->
+  <rect x="160" y="200" width="270" height="624" rx="36" fill="none" stroke="#51a1ff" stroke-width="28"/>
+  <circle cx="226" cy="300" r="26" fill="#57e389"/>
+  <rect x="276" y="286" width="112" height="28" rx="14" fill="#f6f5f4"/>
+  <circle cx="226" cy="400" r="26" fill="#57e389"/>
+  <rect x="276" y="386" width="112" height="28" rx="14" fill="#c0bfbc"/>
+  <circle cx="226" cy="500" r="26" fill="none" stroke="#8e8c94" stroke-width="10"/>
+  <rect x="276" y="486" width="112" height="28" rx="14" fill="#8e8c94"/>
+  <!-- right pane: stacked containers grouped by a bracket -->
+  <rect x="490" y="200" width="374" height="624" rx="36" fill="none" stroke="#5e5c64" stroke-width="28"/>
+  <rect x="560" y="290" width="240" height="120" rx="20" fill="#4fd2fd"/>
+  <rect x="560" y="452" width="240" height="120" rx="20" fill="#c061cb"/>
+  <rect x="560" y="614" width="240" height="120" rx="20" fill="#f8e45c"/>
+  <path d="M542 290 h-18 v444 h18" fill="none" stroke="#f6f5f4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
