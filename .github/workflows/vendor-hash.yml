@@ -1,0 +1,33 @@
+# Dependabot Go updates change go.sum, which invalidates flake.nix's vendorHash.
+# This recomputes the hash on Dependabot PRs and pushes the fix to the PR branch.
+name: Update vendorHash
+
+on:
+  pull_request:
+    paths: [go.mod, go.sum]
+
+jobs:
+  vendor-hash:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: cachix/install-nix-action@v31
+      - name: Recompute vendorHash
+        run: |
+          if nix build -L 2>&1 | tee build.log; then
+            echo "vendorHash already correct"
+            exit 0
+          fi
+          hash=$(grep -oE 'got: +sha256-[A-Za-z0-9+/=]+' build.log | awk '{print $2}')
+          [ -n "$hash" ] || { echo "build failed for a reason other than vendorHash"; exit 1; }
+          sed -i "s|vendorHash = \".*\";|vendorHash = \"$hash\";|" flake.nix
+          nix build -L
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Update vendorHash"
+          git push
