@@ -1,14 +1,47 @@
 # Dependabot Go updates change go.sum, which invalidates flake.nix's vendorHash.
 # This recomputes the hash on Dependabot PRs and pushes the fix to the PR branch.
+#
+# Split into two jobs so dependency code never runs with a write token:
+#   compute: builds the PR (runs untrusted dependency code), read-only token, no stored credentials
+#   commit:  never builds; only validates the hash string, edits flake.nix and pushes
 name: Update vendorHash
 
 on:
   pull_request:
     paths: [go.mod, go.sum]
 
+permissions: {}
+
 jobs:
-  vendor-hash:
+  compute:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      hash: ${{ steps.hash.outputs.hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31
+      - name: Find correct vendorHash
+        id: hash
+        shell: bash
+        run: |
+          set -uo pipefail
+          if nix build -L 2>&1 | tee build.log; then
+            echo "vendorHash already correct"
+            exit 0
+          fi
+          hash=$(grep -oE 'got: +sha256-[A-Za-z0-9+/=]+' build.log | awk '{print $2}' | head -n1)
+          [ -n "$hash" ] || { echo "build failed for a reason other than vendorHash"; exit 1; }
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
+  commit:
+    needs: compute
+    if: needs.compute.outputs.hash != ''
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,17 +49,16 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.head_ref }}
-      - uses: cachix/install-nix-action@v31
-      - name: Recompute vendorHash
+      - name: Write vendorHash and push
+        shell: bash
+        env:
+          HASH: ${{ needs.compute.outputs.hash }}
         run: |
-          if nix build -L 2>&1 | tee build.log; then
-            echo "vendorHash already correct"
-            exit 0
-          fi
-          hash=$(grep -oE 'got: +sha256-[A-Za-z0-9+/=]+' build.log | awk '{print $2}')
-          [ -n "$hash" ] || { echo "build failed for a reason other than vendorHash"; exit 1; }
-          sed -i "s|vendorHash = \".*\";|vendorHash = \"$hash\";|" flake.nix
-          nix build -L
+          set -euo pipefail
+          # The hash came from a job that ran untrusted code: accept only a well-formed SRI sha256.
+          [[ "$HASH" =~ ^sha256-[A-Za-z0-9+/]{43}=$ ]] || { echo "refusing malformed hash: $HASH"; exit 1; }
+          sed -i "s|vendorHash = \".*\";|vendorHash = \"$HASH\";|" flake.nix
+          git diff --quiet && { echo "no change"; exit 0; }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -am "Update vendorHash"
