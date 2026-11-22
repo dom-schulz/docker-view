@@ -3,6 +3,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch: # started by vendor-hash.yml after it pushes a hash fix
 
 jobs:
   go:
