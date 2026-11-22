@@ -15,7 +15,7 @@
           pname = "docker-view";
           inherit version;
           src = self;
-          vendorHash = "sha256-An2nvY16w49nki0ulkA2msjTwgUXW5XWE3smATW1XBc=";
+          vendorHash = "sha256-WoeH7CfecFYM6cA/liyYY1vHEUuA6pA2CszljYaoV2k=";
           subPackages = [ "cmd/dkrv" ];
           env.CGO_ENABLED = 0;
           ldflags = [ "-s" "-w" "-X main.version=${version}" ];
